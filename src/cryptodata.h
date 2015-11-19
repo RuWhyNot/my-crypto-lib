@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <vector>
+#include "filestream.h"
 
 namespace Crypto
 {
@@ -12,16 +13,18 @@ namespace Crypto
 		typedef std::shared_ptr<Data> Ptr;
 
 	public:
-		Data();
 		explicit Data(const std::string& data);
 		explicit Data(const std::vector<uint8_t>& data);
+		explicit Data(const FileStream::Ptr data);
 
-		~Data();
+		virtual ~Data();
 
 		std::string ToString() const;
 		std::string ToHex() const;
 
 	private:
+		void Init();
+
 		class Impl;
 		std::unique_ptr<Impl> pimpl;
 	};

@@ -7,26 +7,16 @@
 
 namespace Crypto
 {
-	class Key : public Data
+	class Key
 	{
 	public:
 		typedef std::shared_ptr<Key> Ptr;
 
 	public:
-		Key();
-		~Key();
+		virtual ~Key() = default;
 
-		void Generate(unsigned int seed);
-
-		Data::Ptr EncryptData(const Data::Ptr data);
-		Data::Ptr DecryptData(const Data::Ptr cryptedData);
-
-		Signature::Ptr SignData(const Data::Ptr data);
-		bool VerifySignature(const Data::Ptr data, Signature::Ptr signature);
-
-	private:
-		class Impl;
-		std::unique_ptr<Impl> pimpl;
+		virtual std::string ToString() const = 0;
+		virtual std::string ToHex() const = 0;
 	};
 
 } // namespace Crypto
