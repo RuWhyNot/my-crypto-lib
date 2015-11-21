@@ -3,7 +3,7 @@
 namespace Crypto
 {
 	Signature::Signature()
-		: Data("")
+		: Data()
 	{
 
 	}

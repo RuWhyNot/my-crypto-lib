@@ -5,7 +5,7 @@
 
 namespace Crypto
 {
-	class PrivateKey : public Key
+	class PrivateKey
 	{
 	public:
 		typedef std::shared_ptr<PrivateKey> Ptr;
@@ -14,14 +14,14 @@ namespace Crypto
 		~PrivateKey();
 
 		static PrivateKey::Ptr Generate(unsigned int seed);
+		static PrivateKey::Ptr CreateFromData(Data::Ptr keyData);
 
 		Data::Ptr DecryptData(const Data::Ptr cryptedData);
 		Signature::Ptr SignData(const Data::Ptr data);
 
 		PublicKey::Ptr GetPublicKey();
 
-		virtual std::string ToString() const override;
-		virtual std::string ToHex() const override;
+		Data::Ptr ToData() const;
 
 	private:
 		PrivateKey();

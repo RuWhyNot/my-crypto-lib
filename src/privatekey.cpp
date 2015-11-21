@@ -6,6 +6,8 @@
 #include "../cryptopp/base64.h"
 #include "../cryptopp/aes.h"
 
+#include "publickeyimpl.h"
+
 namespace Crypto
 {
 	class PrivateKey::Impl
@@ -38,6 +40,11 @@ namespace Crypto
 		return result;
 	}
 
+	PrivateKey::Ptr PrivateKey::CreateFromData(Data::Ptr keyData)
+	{
+
+	}
+
 	Data::Ptr PrivateKey::DecryptData(const Data::Ptr cryptedData)
 	{
 		std::string result;
@@ -51,7 +58,7 @@ namespace Crypto
 		   ) // PK_DecryptorFilter
 		); // StringSource
 
-		return std::make_shared<Data>(result);
+		return Data::Create(result);
 	}
 
 	Signature::Ptr PrivateKey::SignData(const Data::Ptr cryptedData)
@@ -61,16 +68,11 @@ namespace Crypto
 
 	PublicKey::Ptr PrivateKey::GetPublicKey()
 	{
-		return std::make_shared<PublicKey>(pimpl->privateKey);
+		return std::make_shared<PublicKeyImpl>(pimpl->privateKey);
 	}
 
-	std::string PrivateKey::ToString() const
+	Data::Ptr PrivateKey::ToData() const
 	{
-		return "";
-	}
 
-	std::string PrivateKey::ToHex() const
-	{
-		return "";
 	}
 }

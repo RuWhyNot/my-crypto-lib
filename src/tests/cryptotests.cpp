@@ -12,7 +12,7 @@ namespace CryptoTests
 		Crypto::PrivateKey::Ptr privateKey = Crypto::PrivateKey::Generate(time(NULL));
 		Crypto::PublicKey::Ptr publicKey = privateKey->GetPublicKey();
 
-		Crypto::Data::Ptr plain(std::make_shared<Crypto::Data>("RSA Encryption"));
+		Crypto::Data::Ptr plain(Crypto::Data::Create("RSA Encryption"));
 
 		Crypto::Data::Ptr cipher = publicKey->EncryptData(plain);
 

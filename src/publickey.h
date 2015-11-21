@@ -1,32 +1,25 @@
 #ifndef PUBLICKEY_H
 #define PUBLICKEY_H
 
-#include "key.h"
-
-namespace CryptoPP { class RSAFunction; }
+#include <memory>
+#include "cryptodata.h"
+#include "signature.h"
 
 namespace Crypto
 {
-	class PublicKey : public Key
+	///
+	/// Interface for public key
+	///
+	class PublicKey
 	{
 	public:
 		typedef std::shared_ptr<PublicKey> Ptr;
 
 	public:
-		PublicKey(const CryptoPP::RSAFunction& initData);
-		~PublicKey();
+		virtual Data::Ptr EncryptData(const Data::Ptr data) const = 0;
+		virtual bool VerifySignature(const Data::Ptr data, Signature::Ptr signature) const = 0;
 
-		Data::Ptr EncryptData(const Data::Ptr data);
-		bool VerifySignature(const Data::Ptr data, Signature::Ptr signature);
-
-		virtual std::string ToString() const override;
-		virtual std::string ToHex() const override;
-
-	private:
-		PublicKey();
-
-		class Impl;
-		std::unique_ptr<Impl> pimpl;
+		virtual Data::Ptr ToData() const = 0;
 	};
 }
 

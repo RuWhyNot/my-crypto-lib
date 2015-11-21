@@ -9,26 +9,42 @@ namespace Crypto
 		std::vector<uint8_t> data;
 	};
 
-	Data::Data(const std::string& data)
+	Data::Data()
+		: pimpl(new Impl())
 	{
-		Init();
-		pimpl->testData = data;
-	}
-
-	Data::Data(const std::vector<uint8_t>& data)
-	{
-		Init();
-		pimpl->data = data;
-	}
-
-	Data::Data(const FileStream::Ptr data)
-	{
-		Init();
 	}
 
 	Data::~Data()
 	{
 
+	}
+
+	Data::Ptr Data::Create(const std::string& data)
+	{
+		Data* dataRawPtr = new Data();
+
+		dataRawPtr->pimpl->testData = data;
+
+		// raw ptr will be deleted automatically
+		return Data::Ptr(dataRawPtr);
+	}
+
+	Data::Ptr Data::Create(const std::vector<uint8_t>& data)
+	{
+		Data* dataRawPtr = new Data();
+
+		dataRawPtr->pimpl->data = data;
+
+		// raw ptr will be deleted automatically
+		return Data::Ptr(dataRawPtr);
+	}
+
+	Data::Ptr Data::Create(const FileStream::Ptr data)
+	{
+		Data* dataRawPtr = new Data();
+
+		// raw ptr will be deleted automatically
+		return Data::Ptr(dataRawPtr);
 	}
 
 	std::string Data::ToString() const
@@ -41,9 +57,9 @@ namespace Crypto
 		return pimpl->testData;
 	}
 
-	void Data::Init()
+	std::string Data::ToBase64() const
 	{
-		pimpl = std::unique_ptr<Impl>(new Impl());
+		return pimpl->testData;
 	}
 
 }
