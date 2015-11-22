@@ -1,6 +1,8 @@
 #include "cryptodata.h"
 
 #include <string.h>
+#include "../cryptopp/base64.h"
+#include "../cryptopp/hex.h"
 
 namespace Crypto
 {
@@ -47,12 +49,33 @@ namespace Crypto
 
 	std::string Data::ToHex() const
 	{
-		return ToString();
+		std::string result;
+
+		CryptoPP::HexEncoder encoder;
+		encoder.Put(pimpl->data.data(), pimpl->data.size());
+		encoder.MessageEnd();
+
+		CryptoPP::word64 size = encoder.MaxRetrievable();
+		if(size)
+		{
+			result.resize(size);
+			encoder.Get((byte*)result.data(), result.size());
+		}
+		return result;
 	}
 
 	std::string Data::ToBase64() const
 	{
-		return ToString();
+		std::string result;
+
+		CryptoPP::Base64Encoder encoder;
+		CryptoPP::AlgorithmParameters params = CryptoPP::MakeParameters(CryptoPP::Name::Pad(), false)(CryptoPP::Name::InsertLineBreaks(), false);
+		encoder.IsolatedInitialize(params);
+
+		encoder.Attach(new CryptoPP::StringSink(result));
+		CryptoPP::ArraySource as(pimpl->data.data(), pimpl->data.size(), true, new CryptoPP::Redirector(encoder));
+
+		return result;
 	}
 
 	const Data::RawData&Data::GetRawDataRef() const

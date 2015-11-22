@@ -1,5 +1,4 @@
-#ifndef PRIVATEKEY_H
-#define PRIVATEKEY_H
+#pragma once
 
 #include "publickey.h"
 
@@ -30,5 +29,3 @@ namespace Crypto
 		std::unique_ptr<Impl> pimpl;
 	};
 }
-
-#endif // PRIVATEKEY_H

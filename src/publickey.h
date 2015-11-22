@@ -1,5 +1,4 @@
-#ifndef PUBLICKEY_H
-#define PUBLICKEY_H
+#pragma once
 
 #include <memory>
 #include "cryptodata.h"
@@ -22,5 +21,3 @@ namespace Crypto
 		virtual Data::Ptr ToData() const = 0;
 	};
 }
-
-#endif // PUBLICKEY_H

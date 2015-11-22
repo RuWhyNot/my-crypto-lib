@@ -4,7 +4,9 @@
 
 int main()
 {
-	int n = 1000;
+	CryptoTests::RunAlltests();
+
+	int n = 100;
 	bool success = CryptoTests::RunAlltestsNTimes(n);
 	if (success) {
 		std::cout << "All tests passed " << n << " times" << std::endl;

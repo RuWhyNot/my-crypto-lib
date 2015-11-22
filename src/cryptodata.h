@@ -1,5 +1,4 @@
-#ifndef CRYPTODATA_H
-#define CRYPTODATA_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -27,12 +26,10 @@ namespace Crypto
 		void SaveToFile(const std::string& fileName) const;
 		void LoadFromFile(const std::string& fileName);
 
-	protected:
+	private:
 		Data();
 
-	private:
 		class Impl;
 		std::unique_ptr<Impl> pimpl;
 	};
 }
-#endif // CRYPTODATA_H

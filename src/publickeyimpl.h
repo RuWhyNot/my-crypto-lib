@@ -1,5 +1,4 @@
-#ifndef PUBLICKEYIMPL_H
-#define PUBLICKEYIMPL_H
+#pragma once
 
 #include "../cryptopp/rsa.h"
 
@@ -24,5 +23,3 @@ namespace Crypto
 		CryptoPP::RSA::PublicKey publicKey;
 	};
 }
-
-#endif // PUBLICKEYIMPL_H
