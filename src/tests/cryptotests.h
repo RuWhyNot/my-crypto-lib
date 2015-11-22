@@ -2,5 +2,9 @@
 
 namespace CryptoTests
 {
-	void CryptEncryptTest();
+	bool CryptNEncryptTest();
+	bool SignNVerifyTest();
+
+	bool RunAlltests();
+	bool RunAlltestsNTimes(int n);
 }

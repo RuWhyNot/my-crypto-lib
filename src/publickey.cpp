@@ -3,4 +3,4 @@
 namespace Crypto
 {
 
-}
+} // namespace Crypto

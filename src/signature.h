@@ -6,14 +6,23 @@
 
 namespace Crypto
 {
-	class Signature : public Data
+	class Signature
 	{
 	public:
 		typedef std::shared_ptr<Signature> Ptr;
 
 	public:
-		Signature();
 		~Signature();
+
+		static Ptr CreateFromData(Data::Ptr data);
+
+		Data::Ptr ToData() const;
+
+	private:
+		Signature();
+
+		class Impl;
+		std::unique_ptr<Impl> pimpl;
 	};
 
 } // namespace Crypto

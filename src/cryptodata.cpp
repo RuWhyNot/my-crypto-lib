@@ -1,11 +1,12 @@
 #include "cryptodata.h"
 
+#include <string.h>
+
 namespace Crypto
 {
 	class Data::Impl
 	{
 	public:
-		std::string testData;
 		std::vector<uint8_t> data;
 	};
 
@@ -23,7 +24,7 @@ namespace Crypto
 	{
 		Data* dataRawPtr = new Data();
 
-		dataRawPtr->pimpl->testData = data;
+		dataRawPtr->pimpl->data.assign(data.c_str(), data.c_str() + strlen(data.c_str()));
 
 		// raw ptr will be deleted automatically
 		return Data::Ptr(dataRawPtr);
@@ -39,27 +40,34 @@ namespace Crypto
 		return Data::Ptr(dataRawPtr);
 	}
 
-	Data::Ptr Data::Create(const FileStream::Ptr data)
-	{
-		Data* dataRawPtr = new Data();
-
-		// raw ptr will be deleted automatically
-		return Data::Ptr(dataRawPtr);
-	}
-
 	std::string Data::ToString() const
 	{
-		return pimpl->testData;
+		return std::string(pimpl->data.begin(), pimpl->data.end());
 	}
 
 	std::string Data::ToHex() const
 	{
-		return pimpl->testData;
+		return ToString();
 	}
 
 	std::string Data::ToBase64() const
 	{
-		return pimpl->testData;
+		return ToString();
 	}
 
-}
+	const Data::RawData&Data::GetRawDataRef() const
+	{
+		return pimpl->data;
+	}
+
+	void Data::SaveToFile(const std::string& fileName) const
+	{
+
+	}
+
+	void Data::LoadFromFile(const std::string& fileName)
+	{
+
+	}
+
+} // namespace Crypto

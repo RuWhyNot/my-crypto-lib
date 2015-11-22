@@ -19,32 +19,38 @@ namespace Crypto
 
 	PublicKey::Ptr PublicKeyImpl::CreateFromData(Data::Ptr keyData)
 	{
-
+		//return PublicKey::Ptr(new PublicKeyImpl());
 	}
 
 	Data::Ptr PublicKeyImpl::EncryptData(const Data::Ptr data) const
 	{
-		std::string result;
-
 		CryptoPP::MT19937 rng;
 		CryptoPP::RSAES_OAEP_SHA_Encryptor encryptor(publicKey);
 
-		CryptoPP::StringSource ss1(data->ToString(), true,
-			new CryptoPP::PK_EncryptorFilter(rng, encryptor,
-				new CryptoPP::StringSink(result)
-		   ) // PK_EncryptorFilter
-		); // StringSource
+		const Data::RawData& rawData = data->GetRawDataRef();
 
-		return Data::Create(result);
+		uint8_t *rawCipherDataPtr = new uint8_t[encryptor.FixedCiphertextLength()];
+
+		encryptor.Encrypt(rng, rawData.data(), rawData.size(), rawCipherDataPtr);
+		Data::RawData rawCipherData(rawCipherDataPtr, rawCipherDataPtr + encryptor.FixedCiphertextLength());
+
+		delete[] rawCipherDataPtr;
+
+		return Data::Create(rawCipherData);
 	}
 
 	bool PublicKeyImpl::VerifySignature(const Data::Ptr data, Signature::Ptr signature) const
 	{
-		return false;
+		CryptoPP::RSASSA_PKCS1v15_SHA_Verifier verifier(publicKey);
+
+		const Data::RawData& messageData = data->GetRawDataRef();
+		const Data::RawData& signatureData = signature->ToData()->GetRawDataRef();
+
+		return verifier.VerifyMessage(messageData.data(), messageData.size(), signatureData.data(), signatureData.size());
 	}
 
 	Data::Ptr PublicKeyImpl::ToData() const
 	{
 		return Data::Create("");
 	}
-}
+} // namespace Crypto

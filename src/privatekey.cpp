@@ -42,28 +42,45 @@ namespace Crypto
 
 	PrivateKey::Ptr PrivateKey::CreateFromData(Data::Ptr keyData)
 	{
-
+		return PrivateKey::Ptr(new PrivateKey());
 	}
 
 	Data::Ptr PrivateKey::DecryptData(const Data::Ptr cryptedData)
 	{
-		std::string result;
-
 		CryptoPP::MT19937 rng;
-		CryptoPP::RSAES_OAEP_SHA_Decryptor d(pimpl->privateKey);
+		CryptoPP::RSAES_OAEP_SHA_Decryptor decryptor(pimpl->privateKey);
 
-		CryptoPP::StringSource ss2(cryptedData->ToString(), true,
-			new CryptoPP::PK_DecryptorFilter(rng, d,
-				new CryptoPP::StringSink(result)
-		   ) // PK_DecryptorFilter
-		); // StringSource
+		const Data::RawData& rawCryptedData = cryptedData->GetRawDataRef();
 
-		return Data::Create(result);
+		uint8_t *rawResultDataPtr = new uint8_t[decryptor.MaxPlaintextLength(rawCryptedData.size())];
+
+		CryptoPP::DecodingResult decodingResult = decryptor.Decrypt(rng, rawCryptedData.data(), rawCryptedData.size(), rawResultDataPtr);
+		Data::RawData rawResultData(rawResultDataPtr, rawResultDataPtr + decodingResult.messageLength);
+
+		delete[] rawResultDataPtr;
+
+		if (decodingResult.isValidCoding) {
+			return Data::Create(rawResultData);
+		} else {
+			return Data::Create("");
+		}
 	}
 
-	Signature::Ptr PrivateKey::SignData(const Data::Ptr cryptedData)
+	Signature::Ptr PrivateKey::SignData(const Data::Ptr data)
 	{
-		return Signature::Ptr();
+		CryptoPP::MT19937 rng;
+		CryptoPP::RSASSA_PKCS1v15_SHA_Signer signer(pimpl->privateKey);
+
+		const Data::RawData& rawData = data->GetRawDataRef();
+
+		uint8_t *rawSignatureDataPtr = new uint8_t[signer.MaxSignatureLength()];
+
+		size_t length =  signer.SignMessage(rng, rawData.data(), rawData.size(), rawSignatureDataPtr);
+		Data::RawData rawSignatureData(rawSignatureDataPtr, rawSignatureDataPtr + length);
+
+		delete[] rawSignatureDataPtr;
+
+		return Signature::CreateFromData(Data::Create(rawSignatureData));
 	}
 
 	PublicKey::Ptr PrivateKey::GetPublicKey()
@@ -73,6 +90,6 @@ namespace Crypto
 
 	Data::Ptr PrivateKey::ToData() const
 	{
-
+		return Data::Create("");
 	}
-}
+} // namespace Crypto
