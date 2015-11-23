@@ -29,6 +29,7 @@ namespace Crypto
 	private:
 		Data();
 
+	private:
 		class Impl;
 		std::unique_ptr<Impl> pimpl;
 	};

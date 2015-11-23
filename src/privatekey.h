@@ -25,6 +25,7 @@ namespace Crypto
 	private:
 		PrivateKey();
 
+	private:
 		class Impl;
 		std::unique_ptr<Impl> pimpl;
 	};

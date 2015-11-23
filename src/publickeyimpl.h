@@ -20,6 +20,9 @@ namespace Crypto
 		virtual Data::Ptr ToData() const override;
 
 	private:
+		PublicKeyImpl();
+
+	private:
 		CryptoPP::RSA::PublicKey publicKey;
 	};
 }

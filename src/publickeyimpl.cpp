@@ -19,7 +19,22 @@ namespace Crypto
 
 	PublicKey::Ptr PublicKeyImpl::CreateFromData(Data::Ptr keyData)
 	{
-		//return PublicKey::Ptr(new PublicKeyImpl());
+		PublicKeyImpl *rawPublicKeyPtr = new PublicKeyImpl();
+
+		const Data::RawData& rawKeyData = keyData->GetRawDataRef();
+
+		int nSize = rawKeyData[0];
+
+		int dataShift = 1;
+		CryptoPP::Integer exponent(rawKeyData.data() + dataShift, nSize);
+
+		dataShift += nSize;
+		CryptoPP::Integer modulus(rawKeyData.data() + dataShift, rawKeyData.size() - dataShift);
+
+		rawPublicKeyPtr->publicKey.Initialize(modulus, exponent);
+
+		// raw ptr will be deleted automatically
+		return PublicKey::Ptr(rawPublicKeyPtr);
 	}
 
 	Data::Ptr PublicKeyImpl::EncryptData(const Data::Ptr data) const
@@ -51,6 +66,34 @@ namespace Crypto
 
 	Data::Ptr PublicKeyImpl::ToData() const
 	{
-		return Data::Create("");
+		Data::RawData rawData;
+
+		CryptoPP::Integer exponent = publicKey.GetPublicExponent();
+		CryptoPP::Integer modulus = publicKey.GetModulus();
+
+		const int expSize = exponent.ByteCount();
+		const int modSize = modulus.ByteCount();
+		int dataShift = 1;
+
+		rawData.resize(dataShift + expSize + modSize);
+		rawData[0] = exponent.ByteCount(); // first byte is exponent size
+
+		for (int i = 0; i < expSize; ++i) {
+			// inverse bytes order
+			rawData[dataShift + i] = exponent.GetByte(expSize - i - 1);
+		}
+
+		dataShift += expSize;
+		for (int i = 0; i < modSize; ++i) {
+			// inverse bytes order
+			rawData[dataShift + i] = modulus.GetByte(modSize - i - 1);
+		}
+
+		return Data::Create(rawData);
+	}
+
+	PublicKeyImpl::PublicKeyImpl()
+	{
+
 	}
 } // namespace Crypto

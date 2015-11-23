@@ -42,7 +42,26 @@ namespace Crypto
 
 	PrivateKey::Ptr PrivateKey::CreateFromData(Data::Ptr keyData)
 	{
-		return PrivateKey::Ptr(new PrivateKey());
+		PrivateKey *rawPrivateKeyPtr = new PrivateKey();
+
+		const Data::RawData& rawKeyData = keyData->GetRawDataRef();
+
+		int nSize = rawKeyData[0];
+		int eSize = rawKeyData[1];
+
+		int dataShift = 2;
+		CryptoPP::Integer exponent(rawKeyData.data() + dataShift, nSize);
+
+		dataShift += nSize;
+		CryptoPP::Integer modulus(rawKeyData.data() + dataShift, eSize);
+
+		dataShift += eSize;
+		CryptoPP::Integer modInverse(rawKeyData.data() + dataShift, rawKeyData.size() - dataShift);
+
+		rawPrivateKeyPtr->pimpl->privateKey.Initialize(modulus, exponent, modInverse);
+
+		// raw ptr will be deleted automatically
+		return PrivateKey::Ptr(rawPrivateKeyPtr);
 	}
 
 	Data::Ptr PrivateKey::DecryptData(const Data::Ptr cryptedData)
@@ -90,6 +109,39 @@ namespace Crypto
 
 	Data::Ptr PrivateKey::ToData() const
 	{
-		return Data::Create("");
+		Data::RawData rawData;
+		CryptoPP::MT19937 rng;
+
+		CryptoPP::Integer exponent = pimpl->privateKey.GetPublicExponent();
+		CryptoPP::Integer modulus = pimpl->privateKey.GetModulus();
+		CryptoPP::Integer modInverse = pimpl->privateKey.GetPrivateExponent();
+
+		const int expSize = exponent.ByteCount();
+		const int modSize = modulus.ByteCount();
+		const int mmiSize = modInverse.ByteCount();
+		int dataShift = 2;
+
+		rawData.resize(dataShift + expSize + modSize + mmiSize);
+		rawData[0] = exponent.ByteCount(); // first byte is exponent size
+		rawData[1] = modulus.ByteCount(); // second byte is modulus size
+
+		for (int i = 0; i < expSize; ++i) {
+			// inverse bytes order
+			rawData[dataShift + i] = exponent.GetByte(expSize - i - 1);
+		}
+
+		dataShift += expSize;
+		for (int i = 0; i < modSize; ++i) {
+			// inverse bytes order
+			rawData[dataShift + i] = modulus.GetByte(modSize - i - 1);
+		}
+
+		dataShift += modSize;
+		for (int i = 0; i < mmiSize; ++i) {
+			// inverse bytes order
+			rawData[dataShift + i] = modInverse.GetByte(mmiSize - i - 1);
+		}
+
+		return Data::Create(rawData);
 	}
 } // namespace Crypto

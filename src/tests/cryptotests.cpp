@@ -4,13 +4,24 @@
 #include <iostream>
 
 #include "../privatekey.h"
+#include "../publickeyimpl.h"
 
 namespace CryptoTests
 {
 	bool CryptNEncryptTest(bool silent)
 	{
-		Crypto::PrivateKey::Ptr privateKey = Crypto::PrivateKey::Generate(time(NULL));
-		Crypto::PublicKey::Ptr publicKey = privateKey->GetPublicKey();
+		Crypto::Data::Ptr publicKeyData;
+		Crypto::Data::Ptr privateKeyData;
+		{
+			Crypto::PrivateKey::Ptr privateKey = Crypto::PrivateKey::Generate(time(NULL));
+			privateKeyData = privateKey->ToData();
+
+			Crypto::PublicKey::Ptr publicKey = privateKey->GetPublicKey();
+			publicKeyData = publicKey->ToData();
+		}
+
+		Crypto::PublicKey::Ptr publicKey = Crypto::PublicKeyImpl::CreateFromData(publicKeyData);
+		Crypto::PrivateKey::Ptr privateKey = Crypto::PrivateKey::CreateFromData(privateKeyData);
 
 		std::string plainText = "Text to encrypt";
 
@@ -27,8 +38,15 @@ namespace CryptoTests
 
 	bool SignNVerifyTest(bool silent)
 	{
+		Crypto::Data::Ptr publicKeyData;
 		Crypto::PrivateKey::Ptr privateKey = Crypto::PrivateKey::Generate(time(NULL));
-		Crypto::PublicKey::Ptr publicKey = privateKey->GetPublicKey();
+
+		{
+			Crypto::PublicKey::Ptr publicKey = privateKey->GetPublicKey();
+			publicKeyData = publicKey->ToData();
+		}
+
+		Crypto::PublicKey::Ptr publicKey = Crypto::PublicKeyImpl::CreateFromData(publicKeyData);
 
 		Crypto::Data::Ptr plain(Crypto::Data::Create("Text to sign"));
 
