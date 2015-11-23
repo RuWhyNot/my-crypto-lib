@@ -81,7 +81,7 @@ namespace Crypto
 		if (decodingResult.isValidCoding) {
 			return Data::Create(rawResultData);
 		} else {
-			return Data::Create("");
+			return Data::Create("0", Data::Encoding::Hex);
 		}
 	}
 
