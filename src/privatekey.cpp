@@ -27,13 +27,13 @@ namespace Crypto
 
 	}
 
-	PrivateKey::Ptr PrivateKey::Generate(unsigned int seed)
+	PrivateKey::Ptr PrivateKey::Generate(unsigned int seed, int size)
 	{
 		PrivateKey::Ptr result(new PrivateKey());
 
 		CryptoPP::MT19937 rng(seed);
 		CryptoPP::InvertibleRSAFunction params;
-		params.GenerateRandomWithKeySize(rng, 512);
+		params.GenerateRandomWithKeySize(rng, size);
 
 		result->pimpl->privateKey = CryptoPP::RSA::PrivateKey(params);
 
@@ -46,10 +46,10 @@ namespace Crypto
 
 		const Data::RawData& rawKeyData = keyData->GetRawDataRef();
 
-		int nSize = rawKeyData[0];
-		int eSize = rawKeyData[1];
+		int nSize = (int)rawKeyData[0] << 8 | rawKeyData[1];
+		int eSize = (int)rawKeyData[2] << 8 | rawKeyData[3];
 
-		int dataShift = 2;
+		int dataShift = 4;
 		CryptoPP::Integer exponent(rawKeyData.data() + dataShift, nSize);
 
 		dataShift += nSize;
@@ -110,7 +110,6 @@ namespace Crypto
 	Data::Ptr PrivateKey::ToData() const
 	{
 		Data::RawData rawData;
-		CryptoPP::MT19937 rng;
 
 		CryptoPP::Integer exponent = pimpl->privateKey.GetPublicExponent();
 		CryptoPP::Integer modulus = pimpl->privateKey.GetModulus();
@@ -119,11 +118,13 @@ namespace Crypto
 		const int expSize = exponent.ByteCount();
 		const int modSize = modulus.ByteCount();
 		const int mmiSize = modInverse.ByteCount();
-		int dataShift = 2;
+		int dataShift = 4;
 
 		rawData.resize(dataShift + expSize + modSize + mmiSize);
-		rawData[0] = exponent.ByteCount(); // first byte is exponent size
-		rawData[1] = modulus.ByteCount(); // second byte is modulus size
+		rawData[0] = expSize >> 8; // first two bytes contain exponent size
+		rawData[1] = expSize & 0xFF;
+		rawData[2] = modSize >> 8; // second two bytes contain modulus size
+		rawData[3] = modSize & 0xFF;
 
 		for (int i = 0; i < expSize; ++i) {
 			// inverse bytes order

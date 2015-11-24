@@ -12,7 +12,7 @@ namespace Crypto
 	public:
 		~PrivateKey();
 
-		static PrivateKey::Ptr Generate(unsigned int seed);
+		static PrivateKey::Ptr Generate(unsigned int seed, int size = 512);
 		static PrivateKey::Ptr CreateFromData(Data::Ptr keyData);
 
 		Data::Ptr DecryptData(const Data::Ptr cryptedData);

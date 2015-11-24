@@ -31,7 +31,7 @@ namespace CryptoTests
 		Crypto::Data::Ptr publicKeyData;
 		Crypto::Data::Ptr privateKeyData;
 		{
-			Crypto::PrivateKey::Ptr privateKey = Crypto::PrivateKey::Generate(time(NULL));
+			Crypto::PrivateKey::Ptr privateKey = Crypto::PrivateKey::Generate(time(NULL), 1024);
 			privateKeyData = privateKey->ToData();
 
 			Crypto::PublicKey::Ptr publicKey = privateKey->GetPublicKey();

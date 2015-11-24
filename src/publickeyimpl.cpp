@@ -23,9 +23,9 @@ namespace Crypto
 
 		const Data::RawData& rawKeyData = keyData->GetRawDataRef();
 
-		int nSize = rawKeyData[0];
+		int nSize = (int)rawKeyData[0] << 8 | rawKeyData[1];
 
-		int dataShift = 1;
+		int dataShift = 2;
 		CryptoPP::Integer exponent(rawKeyData.data() + dataShift, nSize);
 
 		dataShift += nSize;
@@ -73,10 +73,11 @@ namespace Crypto
 
 		const int expSize = exponent.ByteCount();
 		const int modSize = modulus.ByteCount();
-		int dataShift = 1;
+		int dataShift = 2;
 
 		rawData.resize(dataShift + expSize + modSize);
-		rawData[0] = exponent.ByteCount(); // first byte is exponent size
+		rawData[0] = expSize >> 8; // first two bytes contain exponent size
+		rawData[1] = expSize & 0xFF;
 
 		for (int i = 0; i < expSize; ++i) {
 			// inverse bytes order
