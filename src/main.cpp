@@ -1,9 +1,14 @@
-#include "tests/cryptotests.h"
-
 #include <iostream>
+
+#include "tests/cryptotests.h"
+#include "versions/publickey_v20.h"
+#include "versions/privatekey_v20.h"
 
 int main()
 {
+	CryptoTests::TestKeyFactory.RegisterDataKeysConverters(20, Crypto::PrivateKey_v20::CreateFromData, Crypto::PublicKey_v20::CreateFromData);
+	CryptoTests::TestKeyFactory.RegisterDataKeyGenerator(20, Crypto::PrivateKey_v20::Generate);
+
 	CryptoTests::RunAlltests();
 
 	int n = 100;

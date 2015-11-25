@@ -25,7 +25,7 @@ namespace Crypto
 		PrivateKey::Ptr PrivateKeyFromData(Data::Ptr data);
 		PublicKey::Ptr PublicKeyFromData(Data::Ptr data);
 
-		PrivateKey::Ptr GeneratePrivateKey(unsigned long seed, int size, KeyVersion version);
+		PrivateKey::Ptr GeneratePrivateKey(KeyVersion version, unsigned long seed, int size = 512);
 		std::vector<KeyVersion> GetAvailableVersions();
 		KeyVersion GetLatestVersion();
 

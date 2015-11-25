@@ -9,5 +9,6 @@ namespace Crypto
 
 		const KeyVersion ERROR_VERSION = 0;
 		const KeyVersion UNKNOWN_NEW_VERSION = 1;
+		extern const KeyVersion LATEST_KNOWN_VERSION = 20;
 	}
 }

@@ -13,5 +13,6 @@ namespace Crypto
 
 		extern const KeyVersion ERROR_VERSION;
 		extern const KeyVersion UNKNOWN_NEW_VERSION;
+		extern const KeyVersion LATEST_KNOWN_VERSION;
 	}
 }

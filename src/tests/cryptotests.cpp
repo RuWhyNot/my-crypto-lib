@@ -3,25 +3,26 @@
 #include <time.h>
 #include <iostream>
 
-#include "../privatekeyimpl.h"
-#include "../publickeyimpl.h"
-
 namespace CryptoTests
 {
+	Crypto::KeyFactory TestKeyFactory;
+
 	bool CryptNEncryptTest(bool silent)
 	{
+		using namespace Crypto;
+
 		Crypto::Data::Ptr publicKeyData;
 		Crypto::Data::Ptr privateKeyData;
 		{
-			Crypto::PrivateKey::Ptr privateKey = Crypto::PrivateKeyImpl::Generate(time(NULL), 1024);
+			PrivateKey::Ptr privateKey = TestKeyFactory.GeneratePrivateKey(KeyServiceVersions::LATEST_KNOWN_VERSION, time(NULL), 1024);
 			privateKeyData = privateKey->ToData();
 
-			Crypto::PublicKey::Ptr publicKey = privateKey->GetPublicKey();
+			PublicKey::Ptr publicKey = privateKey->GetPublicKey();
 			publicKeyData = publicKey->ToData();
 		}
 
-		Crypto::PublicKey::Ptr publicKey = Crypto::PublicKeyImpl::CreateFromData(publicKeyData);
-		Crypto::PrivateKey::Ptr privateKey = Crypto::PrivateKeyImpl::CreateFromData(privateKeyData);
+		PublicKey::Ptr publicKey = TestKeyFactory.PublicKeyFromData(publicKeyData);
+		PrivateKey::Ptr privateKey = TestKeyFactory.PrivateKeyFromData(privateKeyData);
 
 		std::string plainText = "Text to encrypt";
 
@@ -38,22 +39,24 @@ namespace CryptoTests
 
 	bool SignNVerifyTest(bool silent)
 	{
+		using namespace Crypto;
+
 		Crypto::Data::Ptr publicKeyData;
 		Crypto::Data::Ptr privateKeyData;
 		{
-			Crypto::PrivateKey::Ptr privateKey = Crypto::PrivateKeyImpl::Generate(time(NULL), 1024);
+			PrivateKey::Ptr privateKey = TestKeyFactory.GeneratePrivateKey(KeyServiceVersions::LATEST_KNOWN_VERSION, time(NULL), 1024);
 			privateKeyData = privateKey->ToData();
 
-			Crypto::PublicKey::Ptr publicKey = privateKey->GetPublicKey();
+			PublicKey::Ptr publicKey = privateKey->GetPublicKey();
 			publicKeyData = publicKey->ToData();
 		}
 
-		Crypto::PublicKey::Ptr publicKey = Crypto::PublicKeyImpl::CreateFromData(publicKeyData);
-		Crypto::PrivateKey::Ptr privateKey = Crypto::PrivateKeyImpl::CreateFromData(privateKeyData);
+		PublicKey::Ptr publicKey = TestKeyFactory.PublicKeyFromData(publicKeyData);
+		PrivateKey::Ptr privateKey = TestKeyFactory.PrivateKeyFromData(privateKeyData);
 
 		Crypto::Data::Ptr plain(Crypto::Data::Create("Text to sign"));
 
-		Crypto::Signature::Ptr signature = privateKey->SignData(plain);
+		Signature::Ptr signature = privateKey->SignData(plain);
 		if (!silent) { std::cout << "Signature: " << signature->ToData()->ToBase64() << std::endl; }
 
 		{

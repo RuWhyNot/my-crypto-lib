@@ -43,7 +43,7 @@ namespace Crypto
 		return PublicKey::Ptr(nullptr);
 	}
 
-	PrivateKey::Ptr KeyFactory::GeneratePrivateKey(unsigned long seed, int size, KeyVersion version)
+	PrivateKey::Ptr KeyFactory::GeneratePrivateKey(KeyVersion version, unsigned long seed, int size)
 	{
 		auto it = generators.find(version);
 
