@@ -22,43 +22,11 @@ namespace Crypto
 
 	}
 
-	Data::Ptr Data::Create(const std::wstring& message)
+	Data::Ptr Data::Create(const std::string& data)
 	{
 		Data* dataRawPtr = new Data();
 
-		uint8_t const* p = reinterpret_cast<uint8_t const*>(message.data());
-		std::size_t size = message.size() * sizeof(wchar_t);
-		dataRawPtr->pimpl->data = RawData(p, p+size);
-
-		// raw ptr will be deleted automatically
-		return Data::Ptr(dataRawPtr);
-	}
-
-	Data::Ptr Data::Create(const std::string& data, Encoding encoding)
-	{
-		Data* dataRawPtr = new Data();
-
-		std::unique_ptr<CryptoPP::BaseN_Decoder> decoder;
-
-		if (encoding == Encoding::Base64)
-		{
-			decoder = std::unique_ptr<CryptoPP::Base64Decoder>(new CryptoPP::Base64Decoder());
-		}
-		else if (encoding == Encoding::Hex)
-		{
-			decoder = std::unique_ptr<CryptoPP::HexDecoder>(new CryptoPP::HexDecoder());
-		}
-
-		decoder->Put((byte*)data.data(), data.size());
-		decoder->MessageEnd();
-
-		CryptoPP::word64 size = decoder->MaxRetrievable();
-		if(size)
-		{
-			dataRawPtr->pimpl->data.resize(size);
-			RawData& dataRef = dataRawPtr->pimpl->data;
-			decoder->Get(dataRef.data(), dataRef.size());
-		}
+		dataRawPtr->pimpl->data.assign(data.c_str(), data.c_str() + strlen(data.c_str()));
 
 		// raw ptr will be deleted automatically
 		return Data::Ptr(dataRawPtr);
@@ -74,9 +42,9 @@ namespace Crypto
 		return Data::Ptr(dataRawPtr);
 	}
 
-	std::wstring Data::ToString() const
+	std::string Data::ToString() const
 	{
-		return std::wstring(reinterpret_cast<wchar_t*>(pimpl->data.data()), pimpl->data.size()/sizeof(wchar_t));
+		return std::string(pimpl->data.begin(), pimpl->data.end());
 	}
 
 	std::string Data::ToHex() const
@@ -113,6 +81,16 @@ namespace Crypto
 	const Data::RawData&Data::GetRawDataRef() const
 	{
 		return pimpl->data;
+	}
+
+	void Data::SaveToFile(const std::string& fileName) const
+	{
+
+	}
+
+	void Data::LoadFromFile(const std::string& fileName)
+	{
+
 	}
 
 } // namespace Crypto
