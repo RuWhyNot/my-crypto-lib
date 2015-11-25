@@ -3,6 +3,8 @@
 #include <memory>
 #include <vector>
 
+#include "keyversions.h"
+
 namespace Crypto
 {
 	class Data
@@ -23,9 +25,8 @@ namespace Crypto
 
 		const RawData& GetRawDataRef() const;
 
-		void SaveToFile(const std::string& fileName) const;
-		void LoadFromFile(const std::string& fileName);
-
+		// applicable only for keys data, crypted data and signature data
+		KeyVersion GetVersion();
 	private:
 		Data();
 

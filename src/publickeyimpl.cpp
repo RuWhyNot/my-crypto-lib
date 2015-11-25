@@ -7,14 +7,11 @@
 
 namespace Crypto
 {
+	static KeyVersion THIS_KEY_VERSION = 20;
+
 	PublicKeyImpl::PublicKeyImpl(const CryptoPP::RSAFunction& initData)
 	{
 		publicKey = CryptoPP::RSA::PublicKey(initData);
-	}
-
-	PublicKeyImpl::~PublicKeyImpl()
-	{
-
 	}
 
 	PublicKey::Ptr PublicKeyImpl::CreateFromData(Data::Ptr keyData)
@@ -23,9 +20,10 @@ namespace Crypto
 
 		const Data::RawData& rawKeyData = keyData->GetRawDataRef();
 
-		int nSize = (int)rawKeyData[0] << 8 | rawKeyData[1];
+		// first two bytes is version (skip them)
+		int nSize = (int)rawKeyData[2] << 8 | rawKeyData[3];
 
-		int dataShift = 2;
+		int dataShift = 4;
 		CryptoPP::Integer exponent(rawKeyData.data() + dataShift, nSize);
 
 		dataShift += nSize;
@@ -44,10 +42,12 @@ namespace Crypto
 
 		const Data::RawData& rawData = data->GetRawDataRef();
 
-		uint8_t *rawCipherDataPtr = new uint8_t[encryptor.FixedCiphertextLength()];
+		uint8_t *rawCipherDataPtr = new uint8_t[encryptor.FixedCiphertextLength() + 2];
+		rawCipherDataPtr[0] = THIS_KEY_VERSION >> 8;
+		rawCipherDataPtr[1] = THIS_KEY_VERSION & 0xFF;
 
-		encryptor.Encrypt(rng, rawData.data(), rawData.size(), rawCipherDataPtr);
-		Data::RawData rawCipherData(rawCipherDataPtr, rawCipherDataPtr + encryptor.FixedCiphertextLength());
+		encryptor.Encrypt(rng, rawData.data(), rawData.size(), rawCipherDataPtr + 2);
+		Data::RawData rawCipherData(rawCipherDataPtr, rawCipherDataPtr + encryptor.FixedCiphertextLength() + 2);
 
 		delete[] rawCipherDataPtr;
 
@@ -61,7 +61,7 @@ namespace Crypto
 		const Data::RawData& messageData = data->GetRawDataRef();
 		const Data::RawData& signatureData = signature->ToData()->GetRawDataRef();
 
-		return verifier.VerifyMessage(messageData.data(), messageData.size(), signatureData.data(), signatureData.size());
+		return verifier.VerifyMessage(messageData.data(), messageData.size(), signatureData.data() + 2, signatureData.size() - 2);
 	}
 
 	Data::Ptr PublicKeyImpl::ToData() const
@@ -73,11 +73,13 @@ namespace Crypto
 
 		const int expSize = exponent.ByteCount();
 		const int modSize = modulus.ByteCount();
-		int dataShift = 2;
+		int dataShift = 4;
 
 		rawData.resize(dataShift + expSize + modSize);
-		rawData[0] = expSize >> 8; // first two bytes contain exponent size
-		rawData[1] = expSize & 0xFF;
+		rawData[0] = THIS_KEY_VERSION >> 8; // first two bytes contain key version
+		rawData[1] = THIS_KEY_VERSION & 0xFF;
+		rawData[2] = expSize >> 8; // next two bytes contain exponent size
+		rawData[3] = expSize & 0xFF;
 
 		for (int i = 0; i < expSize; ++i) {
 			// inverse bytes order

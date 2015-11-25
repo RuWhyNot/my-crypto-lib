@@ -10,23 +10,13 @@ namespace Crypto
 		typedef std::shared_ptr<PrivateKey> Ptr;
 
 	public:
-		~PrivateKey();
+		virtual ~PrivateKey() = default;
 
-		static PrivateKey::Ptr Generate(unsigned int seed, int size = 512);
-		static PrivateKey::Ptr CreateFromData(Data::Ptr keyData);
+		virtual Data::Ptr DecryptData(const Data::Ptr cryptedData) = 0;
+		virtual Signature::Ptr SignData(const Data::Ptr data) = 0;
 
-		Data::Ptr DecryptData(const Data::Ptr cryptedData);
-		Signature::Ptr SignData(const Data::Ptr data);
+		virtual PublicKey::Ptr GetPublicKey() = 0;
 
-		PublicKey::Ptr GetPublicKey();
-
-		Data::Ptr ToData() const;
-
-	private:
-		PrivateKey();
-
-	private:
-		class Impl;
-		std::unique_ptr<Impl> pimpl;
+		virtual Data::Ptr ToData() const = 0;
 	};
 }

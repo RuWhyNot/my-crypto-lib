@@ -83,14 +83,15 @@ namespace Crypto
 		return pimpl->data;
 	}
 
-	void Data::SaveToFile(const std::string& fileName) const
+	KeyVersion Data::GetVersion()
 	{
+		KeyVersion version = pimpl->data[0] << 8 | pimpl->data[1];
 
-	}
+		if (version < KeyServiceVersions::MIN_AVAILABLE_VERSION || version > KeyServiceVersions::MAX_AVAILABLE_VERSION) {
+			return KeyServiceVersions::ERROR_VERSION;
+		}
 
-	void Data::LoadFromFile(const std::string& fileName)
-	{
-
+		return version;
 	}
 
 } // namespace Crypto

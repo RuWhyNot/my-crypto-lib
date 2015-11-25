@@ -10,7 +10,6 @@ namespace Crypto
 	{
 	public:
 		PublicKeyImpl(const CryptoPP::RSAFunction& initData);
-		~PublicKeyImpl();
 
 		static PublicKey::Ptr CreateFromData(Data::Ptr keyData);
 
