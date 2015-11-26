@@ -3,6 +3,11 @@
 namespace Crypto
 {
 
+	KeyFactory::Ptr KeyFactory::Create()
+	{
+		return Ptr(new KeyFactory());
+	}
+
 	void KeyFactory::RegisterDataKeysConverters(KeyVersion version, KeyFactory::PrivateKeyConvertFn privateKeyConverter, KeyFactory::PublicKeyConvertFn publicKeyConverter)
 	{
 		converters.insert(std::pair<KeyVersion, KeyConverters>(version, KeyConverters(privateKeyConverter, publicKeyConverter)));

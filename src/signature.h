@@ -3,6 +3,8 @@
 #include <string>
 
 #include "cryptodata.h"
+#include "fingerprint.h"
+#include "keyversions.h"
 
 namespace Crypto
 {

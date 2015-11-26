@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "keyversions.h"
+#include "fingerprint.h"
 
 namespace Crypto
 {
@@ -14,6 +15,7 @@ namespace Crypto
 		typedef std::vector<uint8_t> RawData;
 
 	public:
+		static Ptr CreateEmpty();
 		static Ptr Create(const std::string& data);
 		static Ptr Create(const std::vector<uint8_t>& data);
 
@@ -23,10 +25,15 @@ namespace Crypto
 		std::string ToHex() const;
 		std::string ToBase64() const;
 
+		bool IsEmpty() const;
+
 		const RawData& GetRawDataRef() const;
 
 		// applicable only for keys data, crypted data and signature data
 		KeyVersion GetVersion();
+		// applicable only for crypted data and signature data
+		Fingerprint GetFingerprint() const;
+
 	private:
 		Data();
 

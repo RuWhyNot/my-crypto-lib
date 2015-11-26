@@ -11,18 +11,19 @@ namespace CryptoTests
 	{
 		using namespace Crypto;
 
+		Crypto::Keyring::Ptr keyring = Crypto::Keyring::Create();
+
 		Crypto::Data::Ptr publicKeyData;
-		Crypto::Data::Ptr privateKeyData;
+
 		{
 			PrivateKey::Ptr privateKey = TestKeyFactory.GeneratePrivateKey(KeyServiceVersions::LATEST_KNOWN_VERSION, time(NULL), 1024);
-			privateKeyData = privateKey->ToData();
+			keyring->AddPrivateKey(privateKey);
 
 			PublicKey::Ptr publicKey = privateKey->GetPublicKey();
 			publicKeyData = publicKey->ToData();
 		}
 
 		PublicKey::Ptr publicKey = TestKeyFactory.PublicKeyFromData(publicKeyData);
-		PrivateKey::Ptr privateKey = TestKeyFactory.PrivateKeyFromData(privateKeyData);
 
 		std::string plainText = "Text to encrypt";
 
@@ -31,7 +32,7 @@ namespace CryptoTests
 		Crypto::Data::Ptr cipher = publicKey->EncryptData(plain);
 		if (!silent) { std::cout << "Cipher: " << cipher->ToBase64() << std::endl; }
 
-		Crypto::Data::Ptr recovered = privateKey->DecryptData(cipher);
+		Crypto::Data::Ptr recovered = keyring->DecryptData(cipher);
 		if (!silent) { std::cout << "Recovered text: " << recovered->ToString() << std::endl; }
 
 		return recovered->ToString() == plainText;
@@ -41,17 +42,17 @@ namespace CryptoTests
 	{
 		using namespace Crypto;
 
-		Crypto::Data::Ptr publicKeyData;
+		Crypto::Keyring::Ptr keyring = Crypto::Keyring::Create();
+
 		Crypto::Data::Ptr privateKeyData;
 		{
 			PrivateKey::Ptr privateKey = TestKeyFactory.GeneratePrivateKey(KeyServiceVersions::LATEST_KNOWN_VERSION, time(NULL), 1024);
 			privateKeyData = privateKey->ToData();
 
 			PublicKey::Ptr publicKey = privateKey->GetPublicKey();
-			publicKeyData = publicKey->ToData();
+			keyring->AddPublicKey(publicKey);
 		}
 
-		PublicKey::Ptr publicKey = TestKeyFactory.PublicKeyFromData(publicKeyData);
 		PrivateKey::Ptr privateKey = TestKeyFactory.PrivateKeyFromData(privateKeyData);
 
 		Crypto::Data::Ptr plain(Crypto::Data::Create("Text to sign"));
@@ -60,14 +61,14 @@ namespace CryptoTests
 		if (!silent) { std::cout << "Signature: " << signature->ToData()->ToBase64() << std::endl; }
 
 		{
-			bool isCorrect = publicKey->VerifySignature(plain, signature);
+			bool isCorrect = keyring->VerifySignature(plain, signature);
 			if (!silent) { std::cout << "Signature : " << (isCorrect ? "Valid" : "Invalid") << std::endl; }
 			if (!isCorrect) { return false; }
 		}
 
 		{
 			Crypto::Data::Ptr invalidData = Crypto::Data::Create(plain->ToString() + "asd");
-			bool isCorrect = publicKey->VerifySignature(invalidData, signature);
+			bool isCorrect = keyring->VerifySignature(invalidData, signature);
 			if (!silent) { std::cout << "Signature : " << (isCorrect ? "Valid" : "Invalid") << std::endl; }
 			if (isCorrect) { return false; }
 		}

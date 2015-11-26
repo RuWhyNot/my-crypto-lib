@@ -20,6 +20,8 @@ namespace Crypto
 		virtual Data::Ptr EncryptData(const Data::Ptr data) const = 0;
 		virtual bool VerifySignature(const Data::Ptr data, Signature::Ptr signature) const = 0;
 
+		virtual Fingerprint GetFingerprint() const = 0;
+
 		virtual Data::Ptr ToData() const = 0;
 	};
 }

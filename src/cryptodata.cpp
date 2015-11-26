@@ -22,6 +22,11 @@ namespace Crypto
 
 	}
 
+	Data::Ptr Data::CreateEmpty()
+	{
+		return Data::Ptr(new Data());
+	}
+
 	Data::Ptr Data::Create(const std::string& data)
 	{
 		Data* dataRawPtr = new Data();
@@ -78,6 +83,11 @@ namespace Crypto
 		return result;
 	}
 
+	bool Data::IsEmpty() const
+	{
+		return pimpl->data.empty();
+	}
+
 	const Data::RawData&Data::GetRawDataRef() const
 	{
 		return pimpl->data;
@@ -85,6 +95,10 @@ namespace Crypto
 
 	KeyVersion Data::GetVersion()
 	{
+		if (pimpl->data.size() < 2) {
+			return KeyServiceVersions::ERROR_VERSION;
+		}
+
 		KeyVersion version = pimpl->data[0] << 8 | pimpl->data[1];
 
 		if (version < KeyServiceVersions::MIN_AVAILABLE_VERSION || version > KeyServiceVersions::MAX_AVAILABLE_VERSION) {
@@ -92,6 +106,15 @@ namespace Crypto
 		}
 
 		return version;
+	}
+
+	Fingerprint Data::GetFingerprint() const
+	{
+		if (pimpl->data.size() < 4) {
+			return KeyServiceVersions::ERROR_VERSION;
+		}
+
+		return pimpl->data[2] << 8 | pimpl->data[3];
 	}
 
 } // namespace Crypto

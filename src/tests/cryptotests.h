@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../keyfactory.h"
+#include "../keyring.h"
 
 namespace CryptoTests
 {
