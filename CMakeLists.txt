@@ -13,14 +13,13 @@ else(DEBUG_MODE)
 endif(DEBUG_MODE)
 
 if (MSVC)
-    set(CMAKE_C_FLAGS_DEBUG "-DCOCOS2D_DEBUG=1")
     set(CMAKE_CXX_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
 
 elseif (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_C_FLAGS_DEBUG "-g -Wall -DCOCOS2D_DEBUG=1")
+    set(CMAKE_C_FLAGS_DEBUG "-g -Wall")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wno-switch -Wno-reorder -Wno-deprecated-declarations -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-function")
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
@@ -46,5 +45,12 @@ set(APP_SRC
     ${EXTERNAL_CRYPTO_SRC}
 )
 
-add_executable(${PROJECT_NAME} ${APP_SRC})
+add_executable(${APP_NAME} ${APP_SRC})
+
+if (UNIX)
+    target_link_libraries(${APP_NAME}
+        pthread
+    )
+endif()
+
 
