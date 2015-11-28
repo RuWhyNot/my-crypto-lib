@@ -7,7 +7,7 @@ namespace CryptoTests
 {
 	Crypto::KeyFactory TestKeyFactory;
 
-	bool CryptNEncryptTest(bool silent)
+	bool CryptNEncryptTestSmallText(bool silent)
 	{
 		using namespace Crypto;
 
@@ -33,6 +33,29 @@ namespace CryptoTests
 		if (!silent) { std::cout << "Cipher: " << cipher->ToBase64() << std::endl; }
 
 		Crypto::Data::Ptr recovered = keyring->DecryptData(cipher);
+		if (!silent) { std::cout << "Recovered text: " << recovered->ToString() << std::endl; }
+
+		return recovered->ToString() == plainText;
+	}
+
+	bool CryptNEncryptTestBigText(bool silent)
+	{
+		using namespace Crypto;
+
+		PrivateKey::Ptr privateKey = TestKeyFactory.GeneratePrivateKey(KeyServiceVersions::LATEST_KNOWN_VERSION, time(NULL), 1024);
+		PublicKey::Ptr publicKey = privateKey->GetPublicKey();
+
+		std::string plainText = "Lorem ipsum dolor sit amet, vero nemore in vis. Epicuri suscipit mea in, his ex idque urbanitas. "
+								"Ea nec causae inciderint, facilis voluptaria te usu, meis prodesset omittantur nec ei. An sale de"
+								"nique eos, saepe tantas maiestatis ne pri. Justo praesent comprehensam cu mel, ius an reque verea"
+								"r, ea dolor civibus eum.";
+
+		Crypto::Data::Ptr plain(Crypto::Data::Create(plainText));
+
+		Crypto::Data::Ptr cipher = publicKey->EncryptData(plain);
+		if (!silent) { std::cout << "Cipher: " << cipher->ToBase64() << std::endl; }
+
+		Crypto::Data::Ptr recovered = privateKey->DecryptData(cipher);
 		if (!silent) { std::cout << "Recovered text: " << recovered->ToString() << std::endl; }
 
 		return recovered->ToString() == plainText;
@@ -78,7 +101,8 @@ namespace CryptoTests
 
 	bool RunAlltests(bool silent)
 	{
-		if (!CryptNEncryptTest(silent)) { return false; }
+		if (!CryptNEncryptTestSmallText(silent)) { return false; }
+		if (!CryptNEncryptTestBigText(silent)) { return false; }
 		if (!SignNVerifyTest(silent)) { return false; }
 		return true;
 	}

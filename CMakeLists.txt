@@ -30,14 +30,18 @@ endif()
 
 aux_source_directory(./src MAIN_SRC)
 aux_source_directory(./src/tests TESTS_SRC)
-aux_source_directory(./src/versions VERSIONS_SRC)
+aux_source_directory(./src/versions/v20 VERSION_20_SRC)
 aux_source_directory(./cryptopp CRYPTOPP_SRC)
 aux_source_directory(./cryptopp/external EXTERNAL_CRYPTO_SRC)
+
+set (AVAILABLE_VERSIONS_SRC
+    ${VERSION_20_SRC}
+)
 
 set(APP_SRC
     ${MAIN_SRC}
     ${TESTS_SRC}
-    ${VERSIONS_SRC}
+    ${AVAILABLE_VERSIONS_SRC}
     ${CRYPTOPP_SRC}
     ${EXTERNAL_CRYPTO_SRC}
 )

@@ -1,8 +1,8 @@
 #include <iostream>
 
 #include "tests/cryptotests.h"
-#include "versions/publickey_v20.h"
-#include "versions/privatekey_v20.h"
+#include "versions/v20/publickey_v20.h"
+#include "versions/v20/privatekey_v20.h"
 
 int main()
 {

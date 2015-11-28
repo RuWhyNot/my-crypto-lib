@@ -7,7 +7,8 @@ namespace CryptoTests
 {
 	extern Crypto::KeyFactory TestKeyFactory;
 
-	bool CryptNEncryptTest(bool silent = false);
+	bool CryptNEncryptTestSmallText(bool silent = false);
+	bool CryptNEncryptTestBigText(bool silent = false);
 	bool SignNVerifyTest(bool silent = false);
 
 	bool RunAlltests(bool silent = false);

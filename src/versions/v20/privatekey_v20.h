@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../cryptopp/rsa.h"
-#include "../privatekey.h"
+#include "../../../cryptopp/rsa.h"
+#include "../../privatekey.h"
 
 namespace Crypto
 {

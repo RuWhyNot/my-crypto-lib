@@ -1,9 +1,10 @@
 #include "privatekey_v20.h"
 
-#include "../../cryptopp/algparam.h"
-#include "../../cryptopp/external/mersenne.h"
-#include "../../cryptopp/base64.h"
-#include "../../cryptopp/aes.h"
+#include "../../../cryptopp/algparam.h"
+#include "../../../cryptopp/external/mersenne.h"
+#include "../../../cryptopp/base64.h"
+#include "../../../cryptopp/aes.h"
+#include "../../../cryptopp/modes.h"
 
 #include "publickey_v20.h"
 
@@ -61,17 +62,40 @@ namespace Crypto
 	Data::Ptr PrivateKey_v20::DecryptData(const Data::Ptr cryptedData) const
 	{
 		CryptoPP::MT19937 rng;
-		CryptoPP::RSAES_OAEP_SHA_Decryptor decryptor(privateKey);
+		CryptoPP::RSAES_OAEP_SHA_Decryptor rsaDecryptor(privateKey);
 
 		const Data::RawData& rawCryptedData = cryptedData->GetRawDataRef();
 
 		int serviceDataSize = 4;
-		uint8_t *rawResultDataPtr = new uint8_t[decryptor.MaxPlaintextLength(rawCryptedData.size() - serviceDataSize)];
+		uint8_t *resultRawDataPtr = new uint8_t[rsaDecryptor.FixedMaxPlaintextLength()];
 
-		CryptoPP::DecodingResult decodingResult = decryptor.Decrypt(rng, rawCryptedData.data() + serviceDataSize, rawCryptedData.size() - serviceDataSize, rawResultDataPtr);
-		Data::RawData rawResultData(rawResultDataPtr, rawResultDataPtr + decodingResult.messageLength);
+		int rsaPartSize = rsaDecryptor.FixedCiphertextLength();
+		CryptoPP::DecodingResult decodingResult = rsaDecryptor.Decrypt(rng, rawCryptedData.data() + serviceDataSize, rsaPartSize, resultRawDataPtr);
+		int messageLength = decodingResult.messageLength;
 
-		delete[] rawResultDataPtr;
+		if (static_cast<int>(rawCryptedData.size()) > serviceDataSize + rsaPartSize)
+		{ // we have aes encrypted part
+			int dataShift = 2;
+			int aesKeySize = resultRawDataPtr[0] << 8 | resultRawDataPtr[1];
+			int ivSize = messageLength - aesKeySize - dataShift;
+			uint8_t aesKey[aesKeySize];
+			uint8_t iv[ivSize];
+
+			memcpy(aesKey, resultRawDataPtr + dataShift, aesKeySize);
+			memcpy(iv, resultRawDataPtr + dataShift + aesKeySize, ivSize);
+
+			messageLength = rawCryptedData.size() - serviceDataSize - rsaPartSize;
+
+			delete[] resultRawDataPtr;
+			resultRawDataPtr = new uint8_t[messageLength];
+
+			CryptoPP::CFB_Mode<CryptoPP::AES>::Decryption aesDecryptor(aesKey, sizeof(aesKey), iv, 1);
+			aesDecryptor.ProcessData(resultRawDataPtr, rawCryptedData.data() + serviceDataSize + rsaPartSize, messageLength);
+		}
+
+		Data::RawData rawResultData(resultRawDataPtr, resultRawDataPtr + messageLength);
+
+		delete[] resultRawDataPtr;
 
 		if (decodingResult.isValidCoding) {
 			return Data::Create(rawResultData);
