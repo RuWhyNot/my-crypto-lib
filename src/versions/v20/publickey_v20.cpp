@@ -7,6 +7,8 @@
 #include "../../../cryptopp/sha.h"
 #include "../../../cryptopp/modes.h"
 
+#include <time.h>
+
 namespace Crypto
 {
 	static KeyVersion THIS_KEY_VERSION = 20;
@@ -60,7 +62,7 @@ namespace Crypto
 
 	Data::Ptr PublicKey_v20::EncryptData(const Data::Ptr data) const
 	{
-		CryptoPP::MT19937 rng;
+		CryptoPP::MT19937 rng(time(NULL));
 		CryptoPP::RSAES_OAEP_SHA_Encryptor encryptor(publicKey);
 
 		const Data::RawData& rawData = data->GetRawDataRef();

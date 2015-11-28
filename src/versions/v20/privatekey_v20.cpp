@@ -1,5 +1,7 @@
 #include "privatekey_v20.h"
 
+#include <time.h>
+
 #include "../../../cryptopp/algparam.h"
 #include "../../../cryptopp/external/mersenne.h"
 #include "../../../cryptopp/base64.h"
@@ -19,6 +21,10 @@ namespace Crypto
 	PrivateKey::Ptr PrivateKey_v20::Generate(unsigned long seed, int size)
 	{
 		PrivateKey_v20* resultRawPtr = new PrivateKey_v20();
+
+		if (seed == 0) {
+			seed = time(NULL);
+		}
 
 		CryptoPP::MT19937 rng(seed);
 		CryptoPP::InvertibleRSAFunction params;
@@ -61,7 +67,7 @@ namespace Crypto
 
 	Data::Ptr PrivateKey_v20::DecryptData(const Data::Ptr cryptedData) const
 	{
-		CryptoPP::MT19937 rng;
+		CryptoPP::MT19937 rng(time(NULL));
 		CryptoPP::RSAES_OAEP_SHA_Decryptor rsaDecryptor(privateKey);
 
 		const Data::RawData& rawCryptedData = cryptedData->GetRawDataRef();
@@ -106,7 +112,7 @@ namespace Crypto
 
 	Signature::Ptr PrivateKey_v20::SignData(const Data::Ptr data) const
 	{
-		CryptoPP::MT19937 rng;
+		CryptoPP::MT19937 rng(time(NULL));
 		CryptoPP::RSASSA_PKCS1v15_SHA_Signer signer(privateKey);
 
 		const Data::RawData& rawData = data->GetRawDataRef();
