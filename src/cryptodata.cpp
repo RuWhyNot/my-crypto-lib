@@ -27,11 +27,48 @@ namespace Crypto
 		return Data::Ptr(new Data());
 	}
 
-	Data::Ptr Data::Create(const std::string& data)
+	Data::Ptr Data::Create(const std::string& message)
 	{
 		Data* dataRawPtr = new Data();
 
-		dataRawPtr->pimpl->data.assign(data.c_str(), data.c_str() + strlen(data.c_str()));
+		dataRawPtr->pimpl->data.assign(message.c_str(), message.c_str() + strlen(message.c_str()));
+
+		// raw ptr will be deleted automatically
+		return Data::Ptr(dataRawPtr);
+	}
+
+	Data::Ptr Data::Create(const std::string &data, Data::Encoding encoding)
+	{
+		Data* dataRawPtr = new Data();
+
+		if (encoding == Encoding::Base64)
+		{
+			CryptoPP::Base64Decoder decoder;
+			decoder.Put((uint8_t*)data.data(), data.size());
+			decoder.MessageEnd();
+
+			size_t size = (size_t)decoder.MaxRetrievable();
+			if(size && size <= SIZE_MAX)
+			{
+				uint8_t arr[size];
+				decoder.Get(arr, size);
+				dataRawPtr->pimpl->data = Data::RawData(arr, arr + size);
+			}
+		}
+		else if (encoding == Encoding::Hex)
+		{
+			CryptoPP::HexDecoder decoder;
+			decoder.Put((uint8_t*)data.data(), data.size());
+			decoder.MessageEnd();
+
+			size_t size = (size_t)decoder.MaxRetrievable();
+			if(size && size <= SIZE_MAX)
+			{
+				uint8_t arr[size];
+				decoder.Get(arr, size);
+				dataRawPtr->pimpl->data = Data::RawData(arr, arr + size);
+			}
+		}
 
 		// raw ptr will be deleted automatically
 		return Data::Ptr(dataRawPtr);
@@ -64,7 +101,7 @@ namespace Crypto
 		if(size)
 		{
 			result.resize(size);
-			encoder.Get((byte*)result.data(), result.size());
+			encoder.Get((uint8_t*)result.data(), result.size());
 		}
 		return result;
 	}

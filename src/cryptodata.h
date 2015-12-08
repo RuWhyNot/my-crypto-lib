@@ -14,9 +14,16 @@ namespace Crypto
 		typedef std::shared_ptr<Data> Ptr;
 		typedef std::vector<uint8_t> RawData;
 
+        enum class Encoding
+        {
+            Hex
+            ,Base64
+        };
+
 	public:
 		static Ptr CreateEmpty();
-		static Ptr Create(const std::string& data);
+        static Ptr Create(const std::string& message);
+        static Ptr Create(const std::string& data, Encoding encoding);
 		static Ptr Create(const std::vector<uint8_t>& data);
 
 		virtual ~Data();

@@ -10,6 +10,7 @@ namespace CryptoTests
 	bool CryptNEncryptTestSmallText(bool silent = false);
 	bool CryptNEncryptTestBigText(bool silent = false);
 	bool SignNVerifyTest(bool silent = false);
+	bool FromToStrDataTest(bool silent = false);
 
 	bool RunAlltests(bool silent = false);
 	bool RunAlltestsNTimes(int n);

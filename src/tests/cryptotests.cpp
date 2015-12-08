@@ -99,11 +99,32 @@ namespace CryptoTests
 		return true;
 	}
 
+	bool FromToStrDataTest(bool silent)
+	{
+		static const std::string TEST_STR("Text for base64 test");
+		Crypto::Data::Ptr data = Crypto::Data::Create(TEST_STR);
+
+		{
+			std::string result = Crypto::Data::Create(data->ToBase64(), Crypto::Data::Encoding::Base64)->ToString();
+			if (!silent) { std::cout << "Base64 recovered text: " << result << std::endl; }
+			if (result != TEST_STR) { return false; }
+		}
+
+		{
+			std::string result = Crypto::Data::Create(data->ToHex(), Crypto::Data::Encoding::Hex)->ToString();
+			if (!silent) { std::cout << "Hex recovered text: " << result << std::endl; }
+			if (result != TEST_STR) { return false; }
+		}
+
+		return true;
+	}
+
 	bool RunAlltests(bool silent)
 	{
 		if (!CryptNEncryptTestSmallText(silent)) { return false; }
 		if (!CryptNEncryptTestBigText(silent)) { return false; }
 		if (!SignNVerifyTest(silent)) { return false; }
+		if (!FromToStrDataTest(silent)) { return false; }
 		return true;
 	}
 
