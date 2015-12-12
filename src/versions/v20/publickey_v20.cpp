@@ -43,10 +43,21 @@ namespace Crypto
 
 		const Data::RawData& rawKeyData = keyData->GetRawDataRef();
 
-		// first two bytes is version (skip them)
-		int nSize = (int)rawKeyData[2] << 8 | rawKeyData[3];
-
 		int dataShift = 4;
+		if (rawKeyData.size() < (size_t)dataShift) {
+			return PublicKey::Ptr(nullptr);
+		}
+
+		KeyVersion version = (int)rawKeyData[0] << 8 | rawKeyData[1];
+		if (version != THIS_KEY_VERSION) {
+			return PublicKey::Ptr(nullptr);
+		}
+
+		int nSize = (int)rawKeyData[2] << 8 | rawKeyData[3];
+		if (nSize <= 0 || nSize >= (int)rawKeyData.size()) {
+			return PublicKey::Ptr(nullptr);
+		}
+
 		CryptoPP::Integer exponent(rawKeyData.data() + dataShift, nSize);
 
 		dataShift += nSize;

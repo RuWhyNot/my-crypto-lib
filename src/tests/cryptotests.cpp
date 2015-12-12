@@ -3,6 +3,9 @@
 #include <time.h>
 #include <iostream>
 
+#include "../versions/v20/publickey_v20.h"
+#include "../versions/v20/privatekey_v20.h"
+
 namespace CryptoTests
 {
 	Crypto::KeyFactory TestKeyFactory;
@@ -119,12 +122,39 @@ namespace CryptoTests
 		return true;
 	}
 
+	bool ErrorKeysCastTest(bool silent)
+	{
+		{
+			Crypto::PublicKey::Ptr publicKey = Crypto::PublicKey_v20::CreateFromData(Crypto::Data::Create("test"));
+			if (publicKey) { return false; }
+		}
+
+		{
+			Crypto::PrivateKey::Ptr privateKey = Crypto::PrivateKey_v20::CreateFromData(Crypto::Data::Create("test"));
+			if (privateKey) { return false; }
+		}
+
+		{
+			Crypto::PublicKey::Ptr publicKey = TestKeyFactory.PublicKeyFromData(Crypto::Data::Create("test"));
+			if (publicKey) { return false; }
+		}
+
+		{
+			Crypto::PrivateKey::Ptr privateKey = TestKeyFactory.PrivateKeyFromData(Crypto::Data::Create("test"));
+			if (privateKey) { return false; }
+		}
+
+		return true;
+	}
+
+
 	bool RunAlltests(bool silent)
 	{
 		if (!CryptNEncryptTestSmallText(silent)) { return false; }
 		if (!CryptNEncryptTestBigText(silent)) { return false; }
 		if (!SignNVerifyTest(silent)) { return false; }
 		if (!FromToStrDataTest(silent)) { return false; }
+		if (!ErrorKeysCastTest(silent)) { return false; }
 		return true;
 	}
 
@@ -137,5 +167,4 @@ namespace CryptoTests
 		}
 		return true;
 	}
-
 } // namespace CryptoTests

@@ -22,6 +22,10 @@ namespace Crypto
 	{
 		KeyVersion version = data->GetVersion();
 
+		if (version == KeyServiceVersions::ERROR_VERSION) {
+			return PrivateKey::Ptr(nullptr);
+		}
+
 		auto it = converters.find(version);
 
 		if (it != converters.end()) {
@@ -36,6 +40,10 @@ namespace Crypto
 	PublicKey::Ptr KeyFactory::PublicKeyFromData(Data::Ptr data)
 	{
 		KeyVersion version = data->GetVersion();
+
+		if (version == KeyServiceVersions::ERROR_VERSION) {
+			return PublicKey::Ptr(nullptr);
+		}
 
 		auto it = converters.find(version);
 
