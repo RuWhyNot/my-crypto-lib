@@ -44,22 +44,26 @@ namespace Crypto
 
 		const Data::RawData& rawKeyData = keyData->GetRawDataRef();
 
-		int dataShift = 6;
+		int dataShift = 7;
 		if (rawKeyData.size() < (size_t)dataShift) {
 			return PrivateKey::Ptr(nullptr);
 		}
 
-		KeyVersion version = (int)rawKeyData[0] << 8 | rawKeyData[1];
+		if (rawKeyData[0] != Data::GetByteFromType(Data::Type::PrivateKey)) {
+			return PrivateKey::Ptr(nullptr);
+		}
+
+		KeyVersion version = (int)rawKeyData[1] << 8 | rawKeyData[2];
 		if (version != THIS_KEY_VERSION) {
 			return PrivateKey::Ptr(nullptr);
 		}
 
-		int nSize = (int)rawKeyData[2] << 8 | rawKeyData[3];
+		int nSize = (int)rawKeyData[3] << 8 | rawKeyData[4];
 		if (nSize <= 0 || nSize >= (int)rawKeyData.size() - dataShift) {
 			return PrivateKey::Ptr(nullptr);
 		}
 
-		int eSize = (int)rawKeyData[4] << 8 | rawKeyData[5];
+		int eSize = (int)rawKeyData[5] << 8 | rawKeyData[6];
 		if (eSize <= 0 || eSize >= (int)rawKeyData.size() - (dataShift + nSize)) {
 			return PrivateKey::Ptr(nullptr);
 		}
@@ -87,7 +91,16 @@ namespace Crypto
 
 		const Data::RawData& rawCryptedData = cryptedData->GetRawDataRef();
 
-		int serviceDataSize = 4;
+		const int serviceDataSize = 5;
+
+		if (rawCryptedData.size() < (size_t)serviceDataSize) {
+			return Data::CreateEmpty();
+		}
+
+		if (rawCryptedData[0] != Data::GetByteFromType(Data::Type::Cipher)) {
+			return Data::CreateEmpty();
+		}
+
 		uint8_t *resultRawDataPtr = new uint8_t[rsaDecryptor.FixedMaxPlaintextLength()];
 
 		int rsaPartSize = rsaDecryptor.FixedCiphertextLength();
@@ -119,7 +132,7 @@ namespace Crypto
 		delete[] resultRawDataPtr;
 
 		if (decodingResult.isValidCoding) {
-			return Data::Create(rawResultData);
+			return Data::Restore(rawResultData);
 		} else {
 			return Data::CreateEmpty();
 		}
@@ -132,19 +145,20 @@ namespace Crypto
 
 		const Data::RawData& rawData = data->GetRawDataRef();
 
-		int serviceDataSize = 4;
+		int serviceDataSize = 5;
 		uint8_t *rawSignatureDataPtr = new uint8_t[signer.MaxSignatureLength() + serviceDataSize];
-		rawSignatureDataPtr[0] = THIS_KEY_VERSION >> 8;
-		rawSignatureDataPtr[1] = THIS_KEY_VERSION & 0xFF;
-		rawSignatureDataPtr[2] = fingerprint >> 8;
-		rawSignatureDataPtr[3] = fingerprint & 0xFF;
+		rawSignatureDataPtr[0] = Data::GetByteFromType(Data::Type::Signature);
+		rawSignatureDataPtr[1] = THIS_KEY_VERSION >> 8;
+		rawSignatureDataPtr[2] = THIS_KEY_VERSION & 0xFF;
+		rawSignatureDataPtr[3] = fingerprint >> 8;
+		rawSignatureDataPtr[4] = fingerprint & 0xFF;
 
 		size_t length = signer.SignMessage(rng, rawData.data(), rawData.size(), rawSignatureDataPtr + serviceDataSize);
 		Data::RawData rawSignatureData(rawSignatureDataPtr, rawSignatureDataPtr + length + serviceDataSize);
 
 		delete[] rawSignatureDataPtr;
 
-		return Signature::CreateFromData(Data::Create(rawSignatureData));
+		return Signature::CreateFromData(Data::Restore(rawSignatureData));
 	}
 
 	PublicKey::Ptr PrivateKey_v20::GetPublicKey()
@@ -168,15 +182,16 @@ namespace Crypto
 		const int expSize = exponent.ByteCount();
 		const int modSize = modulus.ByteCount();
 		const int mmiSize = modInverse.ByteCount();
-		int dataShift = 6;
+		int dataShift = 7;
 
 		rawData.resize(dataShift + expSize + modSize + mmiSize);
-		rawData[0] = THIS_KEY_VERSION >> 8; // first two bytes contain key version
-		rawData[1] = THIS_KEY_VERSION & 0xFF;
-		rawData[2] = expSize >> 8; // next two bytes contain exponent size
-		rawData[3] = expSize & 0xFF;
-		rawData[4] = modSize >> 8; // next two bytes contain modulus size
-		rawData[5] = modSize & 0xFF;
+		rawData[0] = Data::GetByteFromType(Data::Type::PrivateKey);
+		rawData[1] = THIS_KEY_VERSION >> 8; // two bytes contain key version
+		rawData[2] = THIS_KEY_VERSION & 0xFF;
+		rawData[3] = expSize >> 8; // two bytes contain exponent size
+		rawData[4] = expSize & 0xFF;
+		rawData[5] = modSize >> 8; // two bytes contain modulus size
+		rawData[6] = modSize & 0xFF;
 
 		for (int i = 0; i < expSize; ++i) {
 			// inverse bytes order
@@ -195,6 +210,6 @@ namespace Crypto
 			rawData[dataShift + i] = modInverse.GetByte(mmiSize - i - 1);
 		}
 
-		return Data::Create(rawData);
+		return Data::Restore(rawData);
 	}
 } // namespace Crypto

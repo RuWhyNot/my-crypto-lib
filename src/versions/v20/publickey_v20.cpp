@@ -43,17 +43,21 @@ namespace Crypto
 
 		const Data::RawData& rawKeyData = keyData->GetRawDataRef();
 
-		int dataShift = 4;
+		int dataShift = 5;
 		if (rawKeyData.size() < (size_t)dataShift) {
 			return PublicKey::Ptr(nullptr);
 		}
 
-		KeyVersion version = (int)rawKeyData[0] << 8 | rawKeyData[1];
+		if (rawKeyData[0] != Data::GetByteFromType(Data::Type::PublicKey)) {
+			return PublicKey::Ptr(nullptr);
+		}
+
+		KeyVersion version = (int)rawKeyData[1] << 8 | rawKeyData[2];
 		if (version != THIS_KEY_VERSION) {
 			return PublicKey::Ptr(nullptr);
 		}
 
-		int nSize = (int)rawKeyData[2] << 8 | rawKeyData[3];
+		int nSize = (int)rawKeyData[3] << 8 | rawKeyData[4];
 		if (nSize <= 0 || nSize >= (int)rawKeyData.size()) {
 			return PublicKey::Ptr(nullptr);
 		}
@@ -78,7 +82,7 @@ namespace Crypto
 
 		const Data::RawData& rawData = data->GetRawDataRef();
 
-		int serviceDataSize = 4;
+		int serviceDataSize = 5;
 		uint8_t *rawCipherDataPtr = nullptr;
 		uint8_t *dataToRsaCryptPtr = nullptr;
 		int dataToRsaCryptSize = 0;
@@ -123,10 +127,11 @@ namespace Crypto
 			memcpy(dataToRsaCryptPtr, rawData.data(), dataToRsaCryptSize);
 		}
 
-		rawCipherDataPtr[0] = (THIS_KEY_VERSION & 0xFF00) >> 8;
-		rawCipherDataPtr[1] = THIS_KEY_VERSION & 0xFF;
-		rawCipherDataPtr[2] = (fingerprint & 0xFF00) >> 8;
-		rawCipherDataPtr[3] = fingerprint & 0xFF;
+		rawCipherDataPtr[0] = Data::GetByteFromType(Data::Type::Cipher);
+		rawCipherDataPtr[1] = (THIS_KEY_VERSION & 0xFF00) >> 8;
+		rawCipherDataPtr[2] = THIS_KEY_VERSION & 0xFF;
+		rawCipherDataPtr[3] = (fingerprint & 0xFF00) >> 8;
+		rawCipherDataPtr[4] = fingerprint & 0xFF;
 
 		encryptor.Encrypt(rng, dataToRsaCryptPtr, dataToRsaCryptSize, rawCipherDataPtr + serviceDataSize);
 		Data::RawData rawCipherData(rawCipherDataPtr, rawCipherDataPtr + encryptedDataLength);
@@ -134,17 +139,29 @@ namespace Crypto
 		delete[] dataToRsaCryptPtr;
 		delete[] rawCipherDataPtr;
 
-		return Data::Create(rawCipherData);
+		return Data::Restore(rawCipherData);
 	}
 
 	bool PublicKey_v20::VerifySignature(const Data::Ptr data, Signature::Ptr signature) const
 	{
-		CryptoPP::RSASSA_PKCS1v15_SHA_Verifier verifier(publicKey);
-
+		int serviceDataSize = 5;
 		const Data::RawData& messageData = data->GetRawDataRef();
 		const Data::RawData& signatureData = signature->ToData()->GetRawDataRef();
 
-		int serviceDataSize = 4;
+		if (signatureData.size() < (size_t)serviceDataSize) {
+			return false;
+		}
+
+		if (signatureData[0] != Data::GetByteFromType(Data::Type::Signature)) {
+			return false;
+		}
+
+		KeyVersion version = (int)signatureData[1] << 8 | signatureData[2];
+		if (version != THIS_KEY_VERSION) {
+			return false;
+		}
+
+		CryptoPP::RSASSA_PKCS1v15_SHA_Verifier verifier(publicKey);
 		return verifier.VerifyMessage(messageData.data(), messageData.size(), signatureData.data() + serviceDataSize, signatureData.size() - serviceDataSize);
 	}
 
@@ -162,13 +179,14 @@ namespace Crypto
 
 		const int expSize = exponent.ByteCount();
 		const int modSize = modulus.ByteCount();
-		int dataShift = 4;
+		int dataShift = 5;
 
 		rawData.resize(dataShift + expSize + modSize);
-		rawData[0] = (THIS_KEY_VERSION & 0xFF00) >> 8; // first two bytes contain key version
-		rawData[1] = THIS_KEY_VERSION & 0xFF;
-		rawData[2] = expSize >> 8; // next two bytes contain exponent size
-		rawData[3] = expSize & 0xFF;
+		rawData[0] = Data::GetByteFromType(Data::Type::PublicKey);
+		rawData[1] = (THIS_KEY_VERSION & 0xFF00) >> 8; // two bytes contain key version
+		rawData[2] = THIS_KEY_VERSION & 0xFF;
+		rawData[3] = expSize >> 8; // two bytes contain exponent size
+		rawData[4] = expSize & 0xFF;
 
 		for (int i = 0; i < expSize; ++i) {
 			// inverse bytes order
@@ -181,6 +199,6 @@ namespace Crypto
 			rawData[dataShift + i] = modulus.GetByte(modSize - i - 1);
 		}
 
-		return Data::Create(rawData);
+		return Data::Restore(rawData);
 	}
 } // namespace Crypto

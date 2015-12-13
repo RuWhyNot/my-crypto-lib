@@ -33,12 +33,12 @@ namespace CryptoTests
 		Crypto::Data::Ptr plain(Crypto::Data::Create(plainText));
 
 		Crypto::Data::Ptr cipher = publicKey->EncryptData(plain);
-		if (!silent) { std::cout << "Cipher: " << cipher->ToBase64() << std::endl; }
+		if (!silent) { std::cout << "Cipher: " << cipher->GetBase64Data() << std::endl; }
 
 		Crypto::Data::Ptr recovered = keyring->DecryptData(cipher);
-		if (!silent) { std::cout << "Recovered text: " << recovered->ToString() << std::endl; }
+		if (!silent) { std::cout << "Recovered text: " << recovered->ToPlainString() << std::endl; }
 
-		return recovered->ToString() == plainText;
+		return recovered->ToPlainString() == plainText;
 	}
 
 	bool CryptNEncryptTestBigText(bool silent)
@@ -56,12 +56,12 @@ namespace CryptoTests
 		Crypto::Data::Ptr plain(Crypto::Data::Create(plainText));
 
 		Crypto::Data::Ptr cipher = publicKey->EncryptData(plain);
-		if (!silent) { std::cout << "Cipher: " << cipher->ToBase64() << std::endl; }
+		if (!silent) { std::cout << "Cipher: " << cipher->GetBase64Data() << std::endl; }
 
 		Crypto::Data::Ptr recovered = privateKey->DecryptData(cipher);
-		if (!silent) { std::cout << "Recovered text: " << recovered->ToString() << std::endl; }
+		if (!silent) { std::cout << "Recovered text: " << recovered->ToPlainString() << std::endl; }
 
-		return recovered->ToString() == plainText;
+		return recovered->ToPlainString() == plainText;
 	}
 
 	bool SignNVerifyTest(bool silent)
@@ -84,7 +84,7 @@ namespace CryptoTests
 		Crypto::Data::Ptr plain(Crypto::Data::Create("Text to sign"));
 
 		Signature::Ptr signature = privateKey->SignData(plain);
-		if (!silent) { std::cout << "Signature: " << signature->ToData()->ToBase64() << std::endl; }
+		if (!silent) { std::cout << "Signature: " << signature->ToData()->GetBase64Data() << std::endl; }
 
 		{
 			bool isCorrect = keyring->VerifySignature(plain, signature);
@@ -93,7 +93,7 @@ namespace CryptoTests
 		}
 
 		{
-			Crypto::Data::Ptr invalidData = Crypto::Data::Create(plain->ToString() + "asd");
+			Crypto::Data::Ptr invalidData = Crypto::Data::Create(plain->ToPlainString() + "asd");
 			bool isCorrect = keyring->VerifySignature(invalidData, signature);
 			if (!silent) { std::cout << "Signature : " << (isCorrect ? "Valid" : "Invalid") << std::endl; }
 			if (isCorrect) { return false; }
@@ -108,14 +108,26 @@ namespace CryptoTests
 		Crypto::Data::Ptr data = Crypto::Data::Create(TEST_STR);
 
 		{
-			std::string result = Crypto::Data::Create(data->ToBase64(), Crypto::Data::Encoding::Base64)->ToString();
-			if (!silent) { std::cout << "Base64 recovered text: " << result << std::endl; }
+			std::string result = Crypto::Data::Restore(data->GetBase64Data(), Crypto::Data::Encoding::Base64)->ToPlainString();
+			if (!silent) { std::cout << "Base64 recovered1 text: " << result << std::endl; }
 			if (result != TEST_STR) { return false; }
 		}
 
 		{
-			std::string result = Crypto::Data::Create(data->ToHex(), Crypto::Data::Encoding::Hex)->ToString();
-			if (!silent) { std::cout << "Hex recovered text: " << result << std::endl; }
+			std::string result = Crypto::Data::Restore(data->GetHexData(), Crypto::Data::Encoding::Hex)->ToPlainString();
+			if (!silent) { std::cout << "Hex recovered1 text: " << result << std::endl; }
+			if (result != TEST_STR) { return false; }
+		}
+
+		{
+			std::string result = Crypto::Data::Create(data->ToPlainBase64(), Crypto::Data::Encoding::Base64)->ToPlainString();
+			if (!silent) { std::cout << "Base64 recovered2 text: " << result << std::endl; }
+			if (result != TEST_STR) { return false; }
+		}
+
+		{
+			std::string result = Crypto::Data::Create(data->ToPlainHex(), Crypto::Data::Encoding::Hex)->ToPlainString();
+			if (!silent) { std::cout << "Hex recovered2 text: " << result << std::endl; }
 			if (result != TEST_STR) { return false; }
 		}
 
